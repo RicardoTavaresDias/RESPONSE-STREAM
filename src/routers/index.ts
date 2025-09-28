@@ -13,13 +13,14 @@ export const router = Router()
  * @param {Response} respose - Objeto de resposta do Express
  */
 
+// 📌 Exemplo de rota que simula digitação palavra por palavra como se fosse um chat
 router.get("/", async (request: Request, respose: Response) => {
   respose.setHeader("Access-Control-Allow-Origin", "*")
   respose.setHeader("Content-Type", "text/event-stream; charset=utf-8")
   respose.setHeader("Cache-Control", "no-cache")
   respose.setHeader("Connection", "keep-alive")
  
-  for await (const chunk of generateLargeFile()) {
+  for await (const chunk of generateLargeFile('poema')) {
     // Simula envio de dados em partes menores, palavra por palavra igual a uma digitação
     const phrases = chunk.split('\n') // separa por frase
     for (const phrase of phrases) {
@@ -34,4 +35,29 @@ router.get("/", async (request: Request, respose: Response) => {
   }
 
   respose.end()
+})
+
+/**
+ * Rota /log que transmite o conteúdo do arquivo 'log.txt' via streaming.
+ * 
+ * Utiliza o formato 'text/event-stream' para enviar os dados em tempo real,
+ * permitindo que o cliente receba o conteúdo do arquivo em partes (chunks).
+ * 
+ * @param {Request} request - Objeto de requisição do Express
+ * @param {Response} respose - Objeto de resposta do Express
+ * @returns {void}
+ */
+
+// 📌 Exemplo de rota que manda em chunks o conteúdo de um arquivo grande
+router.get("/log", async (request: Request, respose: Response) => {
+  respose.setHeader("Access-Control-Allow-Origin", "*")
+  respose.setHeader("Content-Type", "text/event-stream; charset=utf-8")
+  respose.setHeader("Cache-Control", "no-cache")
+  respose.setHeader("Connection", "keep-alive")
+
+   for await (const chunk of generateLargeFile('log')) {
+     respose.write(chunk) // envia o chunk
+   }
+
+   respose.end()
 })

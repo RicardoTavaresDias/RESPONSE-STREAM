@@ -4,13 +4,14 @@ import fs from 'node:fs'
  * Gerador assíncrono que lê um arquivo grande em chunks.
  * Cada chunk é retornado após um delay de 1 segundo.
  * 
+ * @param {string} fileName - Nome do arquivo (sem extensão) a ser lido da pasta ./doc.
  * @async
  * @generator
  * @yields {string} Chunk do arquivo lido
  */
 
-async function* generateLargeFile() {
-  const stream = fs.createReadStream('./file/poema.txt', {
+async function* generateLargeFile(fileName: string) {
+  const stream = fs.createReadStream(`./doc/${fileName}.txt`, {
     encoding: 'utf-8',
       /**
      * highWaterMark: 16 * 1024
