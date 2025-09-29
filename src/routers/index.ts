@@ -2,6 +2,10 @@ import { Router } from "express";
 import { Request, Response } from "express"
 import { generateLargeFile } from "./generate";
 
+import { createReadStream, createWriteStream } from "node:fs";
+import { pipeline } from "node:stream/promises";
+import csvtojson from "csv-parser";
+
 export const router = Router()
 
 /**
@@ -60,4 +64,34 @@ router.get("/log", async (request: Request, respose: Response) => {
    }
 
    respose.end()
+})
+
+/**
+ * Rota /csv que processa o arquivo 'data.csv' via streaming.
+ *
+ * Lê o arquivo CSV, converte cada linha para JSON, filtra apenas os registros
+ * cujo campo 'favorite_os' seja igual a 'macos' e salva o resultado em formato JSONL.
+ *
+ * Ao final do processamento, retorna uma mensagem de sucesso.
+ *
+ * @param {Request} request - Objeto de requisição do Express
+ * @param {Response} response - Objeto de resposta do Express
+ * @returns {Promise<void>}
+ */
+
+router.get("/csv", async (request: Request, response: Response) => {
+  await pipeline (
+    createReadStream("./doc/data.csv"),
+    csvtojson(),
+    async function* (source) {
+      for await (const chunk of source) {
+        if(chunk.favorite_os !== 'macos') continue
+        yield JSON.stringify(chunk) + "\n"
+      }
+    },
+
+    createWriteStream("./doc/outputfile.jsonl")
+  )
+
+  response.status(200).json({ message: "CSV processado com sucesso!" })
 })
